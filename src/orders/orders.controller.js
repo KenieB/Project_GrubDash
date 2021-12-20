@@ -24,6 +24,10 @@ function create(req, res) {
   res.status(201).json({ data: newOrder });
 }
 
+function read(req, res) {
+    res.json({ data: res.locals.order });
+}
+
 //Request Validations
 function bodyHasDeliverToProperty(req, res, next) {
   const { data: { deliverTo } = {} } = req.body;
@@ -80,10 +84,22 @@ function allDishesHaveQuantity(req, res, next) {
     }
   });
 
-  next();
+  return next();
 }
 
 //Validations for existing order
+function orderExists(req, res, next) {
+    const { orderId } = req.params;
+    const foundOrder = orders.find((order) => order.id === orderId);
+    if (foundOrder) {
+        res.locals.order = foundOrder;
+        return next();
+    }
+    next({
+        status: 404,
+        message: `Order id not found: ${orderId}`,
+    });
+}
 
 module.exports = {
   list,
@@ -94,4 +110,5 @@ module.exports = {
       allDishesHaveQuantity,
       create,
   ],
+  read: [orderExists, read],
 };
