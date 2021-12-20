@@ -24,8 +24,32 @@ function create(req, res) {
   res.status(201).json({ data: newDish });
 }
 
-function read(req,res) {
-    res.json({ data: res.locals.dish });
+function read(req, res) {
+  res.json({ data: res.locals.dish });
+}
+
+function update(req, res) {
+  const dish = res.locals.dish;
+
+  //reqName, reqDescription, reqPrice, reqImageUrl stored in locals
+  const initDishName = dish.name;
+  const initDishDescr = dish.description;
+  const initDishPrice = dish.price;
+  const initDishImageUrl = dish.image_url;
+
+  if (initDishName !== res.locals.reqName) {
+    dish.name = res.locals.reqName;
+  }
+  if (initDishDescr !== res.locals.reqDescription) {
+    dish.description = res.locals.reqDescription;
+  }
+  if (initDishPrice !== res.locals.reqPrice) {
+    dish.price = res.locals.reqPrice;
+  }
+  if (initDishImageUrl !== res.locals.reqImageUrl) {
+    dish.image_url = res.locals.reqImageUrl;
+  }
+  res.json({ data: dish });
 }
 
 //Request Validations
@@ -100,18 +124,32 @@ function bodyHasImageUrlProperty(req, res, next) {
   });
 }
 
-//Validations for existing dish
-function dishExists(req,res,next) {
+function ifBodyHasIdValidateParamMatch(req, res, next) {
+  const { data: { id } = {} } = req.body;
+  if (id) {
     const { dishId } = req.params;
-    const foundDish = dishes.find((dish) => dish.id === dishId);
-    if(foundDish) {
-        res.locals.dish = foundDish;
-        return next();
+    if (id !== dishId) {
+      next({
+        status: 400,
+        message: `URL dish id (${dishId}) does not match update request dish id (${id})`,
+      });
     }
-    next({
-        status: 404,
-        message: `Dish id not found: ${dishId}`,
-    });
+  }
+  return next();
+}
+
+//Validations for existing dish
+function dishExists(req, res, next) {
+  const { dishId } = req.params;
+  const foundDish = dishes.find((dish) => dish.id === dishId);
+  if (foundDish) {
+    res.locals.dish = foundDish;
+    return next();
+  }
+  next({
+    status: 404,
+    message: `Dish id not found: ${dishId}`,
+  });
 }
 
 module.exports = {
@@ -125,4 +163,14 @@ module.exports = {
     create,
   ],
   read: [dishExists, read],
+  update: [
+    dishExists,
+    ifBodyHasIdValidateParamMatch,
+    bodyHasNameProperty,
+    bodyHasDescriptionProperty,
+    bodyHasPriceProperty,
+    pricePropertyIsValid,
+    bodyHasImageUrlProperty,
+    update,
+  ],
 };
