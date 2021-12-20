@@ -7,3 +7,15 @@ const orders = require(path.resolve("src/data/orders-data"));
 const nextId = require("../utils/nextId");
 
 // TODO: Implement the /orders handlers needed to make the tests pass
+function list (req, res) {
+    res.json({ data: orders });
+}
+
+//Request Validations
+
+//Validations for existing order
+
+
+module.exports = {
+    list,
+};
