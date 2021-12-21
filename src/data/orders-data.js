@@ -3,7 +3,7 @@ module.exports = [
     id: "f6069a542257054114138301947672ba",
     deliverTo: "1600 Pennsylvania Avenue NW, Washington, DC 20500",
     mobileNumber: "(202) 456-1111",
-    status: "out-for-delivery",
+    status: "delivered",
     dishes: [
       {
         id: "90c3d873684bf381dfab29034b5bba73",
@@ -20,7 +20,7 @@ module.exports = [
     id: "5a887d326e83d3c5bdcbee398ea32aff",
     deliverTo: "308 Negra Arroyo Lane, Albuquerque, NM",
     mobileNumber: "(505) 143-3369",
-    status: "pending",
+    //status: "pending",
     dishes: [
       {
         id: "d351db2b49b69679504652ea1cf38241",

@@ -151,7 +151,13 @@ function orderHasStatusProperty(req, res, next) {
 }
 
 function statusPropertyIsValidForUpdate(req, res, next) {
-  if (res.locals.orderStatusAtChange === "delivered") {
+    if (!res.locals.orderStatusAtChange || res.locals.orderStatusAtChange.length === 0) {
+        next({
+          status: 400,
+          message: "Order must have a status of pending, preparing, out-for-delivery, delivered",
+        });
+      }
+    else  if (res.locals.orderStatusAtChange === "delivered") {
     next({
       status: 400,
       message: "A delivered order cannot be changed",
@@ -184,13 +190,13 @@ module.exports = {
   read: [orderExists, read],
   update: [
     orderExists,
+    orderHasStatusProperty,
+    statusPropertyIsValidForUpdate,
     ifBodyHasIdValidateParamMatch,
     bodyHasDeliverToProperty,
     bodyHasMobileNumberProperty,
     bodyHasDishesProperty,
     allDishesHaveQuantity,
-    orderHasStatusProperty,
-    statusPropertyIsValidForUpdate,
     update,
   ],
   delete: [
