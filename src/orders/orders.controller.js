@@ -151,7 +151,8 @@ function orderHasStatusProperty(req, res, next) {
 }
 
 function statusPropertyIsValidForUpdate(req, res, next) {
-    if (!res.locals.orderStatusAtChange || res.locals.orderStatusAtChange.length === 0) {
+    const validOrderStatus = ["pending", "preparing", "out-for-delivery", "delivered"]
+    if (!validOrderStatus.includes(res.locals.orderStatusAtChange)) {
         next({
           status: 400,
           message: "Order must have a status of pending, preparing, out-for-delivery, delivered",
@@ -190,9 +191,9 @@ module.exports = {
   read: [orderExists, read],
   update: [
     orderExists,
+    ifBodyHasIdValidateParamMatch,
     orderHasStatusProperty,
     statusPropertyIsValidForUpdate,
-    ifBodyHasIdValidateParamMatch,
     bodyHasDeliverToProperty,
     bodyHasMobileNumberProperty,
     bodyHasDishesProperty,
