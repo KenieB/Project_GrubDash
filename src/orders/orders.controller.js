@@ -34,6 +34,7 @@ function update(req, res) {
 
   order.deliverTo = res.locals.reqDeliverTo;
   order.mobileNumber = res.locals.reqMobileNumber;
+  order.status = res.locals.reqOrderStatus;
   order.dishes = res.locals.reqDishes;
 
   res.json({ data: order });
@@ -135,16 +136,17 @@ function orderExists(req, res, next) {
 
 function orderHasStatusProperty(req, res, next) {
   const currentOrderState = res.locals.order;
-  //const { status } = currentOrderState;
+  const { data: { status } = {} } = req.body;
   const orderFields = Object.keys(currentOrderState);
 
-  if (!orderFields.includes("status")) {
+  if (!orderFields.includes("status") || !status) {
     next({
       status: 400,
       message:
         "Order must have a status of pending, preparing, out-for-delivery, delivered",
     });
   } else {
+    res.locals.reqOrderStatus = status;
     res.locals.orderStatusAtChange = currentOrderState.status;
     return next();
   }
@@ -152,13 +154,13 @@ function orderHasStatusProperty(req, res, next) {
 
 function statusPropertyIsValidForUpdate(req, res, next) {
     const validOrderStatus = ["pending", "preparing", "out-for-delivery", "delivered"]
-    if (!validOrderStatus.includes(res.locals.orderStatusAtChange)) {
+    if (!validOrderStatus.includes(res.locals.orderStatusAtChange) || !validOrderStatus.includes(res.locals.reqOrderStatus)) {
         next({
           status: 400,
           message: "Order must have a status of pending, preparing, out-for-delivery, delivered",
         });
       }
-    else  if (res.locals.orderStatusAtChange === "delivered") {
+    else  if (res.locals.orderStatusAtChange === "delivered" || res.locals.reqOrderStatus === "delivered") {
     next({
       status: 400,
       message: "A delivered order cannot be changed",
@@ -169,7 +171,8 @@ function statusPropertyIsValidForUpdate(req, res, next) {
 }
 
 function statusPropertyIsValidForDelete(req, res, next) {
-  if (!(res.locals.orderStatusAtChange === "pending")) {
+  const currentOrderState = res.locals.order;
+  if (currentOrderState.status !== "pending") {
     next({
       status: 400,
       message: "An order cannot be deleted unless it is pending",
@@ -202,7 +205,6 @@ module.exports = {
   ],
   delete: [
     orderExists,
-    orderHasStatusProperty,
     statusPropertyIsValidForDelete,
     destroy,
   ],
